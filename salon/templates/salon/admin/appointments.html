@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Управление записями - Админ{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-5 fw-bold mb-4">Управление записями на сеансы</h1>
+        
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">Все статусы</option>
+                    <option value="pending" {% if current_status == "pending" %}selected{% endif %}>Ожидает подтверждения</option>
+                    <option value="confirmed" {% if current_status == "confirmed" %}selected{% endif %}>Подтверждена</option>
+                    <option value="completed" {% if current_status == "completed" %}selected{% endif %}>Завершена</option>
+                    <option value="cancelled" {% if current_status == "cancelled" %}selected{% endif %}>Отменена</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Применить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Клиент</th>
+                <th>Мастер</th>
+                <th>Дата</th>
+                <th>Время</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appointment in page_obj %}
+            <tr>
+                <td>{{ appointment.pk }}</td>
+                <td>{{ appointment.client.username }}</td>
+                <td>{{ appointment.master.username }}</td>
+                <td>{{ appointment.date|date:"d.m.Y" }}</td>
+                <td>{{ appointment.time|time:"H:i" }}</td>
+                <td>
+                    <span class="badge 
+                        {% if appointment.status == 'confirmed' %}bg-success
+                        {% elif appointment.status == 'completed' %}bg-secondary
+                        {% elif appointment.status == 'cancelled' %}bg-danger
+                        {% else %}bg-warning{% endif %}">
+                        {{ appointment.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'admin_appointment_edit' appointment.pk %}" class="btn btn-sm btn-outline-primary">Редактировать</a>
+                    <a href="{% url 'admin_appointment_delete' appointment.pk %}" class="btn btn-sm btn-outline-danger">Удалить</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">Записи не найдены</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if page_obj.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}">Предыдущая</a>
+        </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <li class="page-item active">
+            <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ num }}{% if current_status %}&status={{ current_status }}{% endif %}">{{ num }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}">Следующая</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+
+
+

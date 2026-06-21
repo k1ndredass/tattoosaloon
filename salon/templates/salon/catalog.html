@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Каталог - Тату-Салон{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-5 fw-bold mb-4">Каталог татуировок</h1>
+        
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" placeholder="Поиск..." value="{{ search_query|default_if_none:'' }}">
+            </div>
+            <div class="col-md-3">
+                <select name="style" class="form-select">
+                    <option value="">Все стили</option>
+                    {% for style in styles %}
+                    <option value="{{ style.pk }}" {% if current_style == style.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ style.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="sort" class="form-select">
+                    <option value="-created_at" {% if current_sort == "-created_at" %}selected{% endif %}>По дате (новые)</option>
+                    <option value="price_asc" {% if current_sort == "price_asc" %}selected{% endif %}>По цене (возрастание)</option>
+                    <option value="price_desc" {% if current_sort == "price_desc" %}selected{% endif %}>По цене (убывание)</option>
+                    <option value="popularity" {% if current_sort == "popularity" %}selected{% endif %}>По популярности</option>
+                    <option value="rating" {% if current_sort == "rating" %}selected{% endif %}>По рейтингу</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Применить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for tattoo in page_obj %}
+    <div class="col-md-4 col-sm-6">
+        <div class="card h-100">
+            {% if tattoo.image %}
+            <img src="{{ tattoo.image.url }}" class="card-img-top tattoo-image" alt="{{ tattoo.title }}">
+            {% else %}
+            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center tattoo-image">
+                <i class="bi bi-image" style="font-size: 60px; color: white;"></i>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ tattoo.title }}</h5>
+                {% if tattoo.style %}
+                <span class="badge bg-dark mb-2">{{ tattoo.style.name }}</span>
+                {% endif %}
+                <p class="card-text text-muted">{{ tattoo.description|truncatewords:15 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">{{ tattoo.price }} ₽</span>
+                    <a href="{% url 'tattoo_detail' tattoo.pk %}" class="btn btn-outline-primary btn-sm">Подробнее</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">Татуировки не найдены</div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_style %}&style={{ current_style }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">Предыдущая</a>
+        </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <li class="page-item active">
+            <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ num }}{% if current_style %}&style={{ current_style }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_style %}&style={{ current_style }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">Следующая</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+

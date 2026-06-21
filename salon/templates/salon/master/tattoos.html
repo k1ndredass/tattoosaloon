@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Эскизы - Мастер{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-5 fw-bold mb-4">Эскизы</h1>
+        
+        <div class="mb-4">
+            <a href="{% url 'master_tattoo_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Добавить татуировку
+            </a>
+        </div>
+        
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <select name="style" class="form-select">
+                    <option value="">Все стили</option>
+                    {% for style in styles %}
+                    <option value="{{ style.pk }}" {% if current_style == style.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ style.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Применить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for tattoo in page_obj %}
+    <div class="col-md-4 col-sm-6">
+        <div class="card h-100">
+            {% if tattoo.image %}
+            <img src="{{ tattoo.image.url }}" class="card-img-top tattoo-image" alt="{{ tattoo.title }}">
+            {% else %}
+            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center tattoo-image">
+                <i class="bi bi-image" style="font-size: 60px; color: white;"></i>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ tattoo.title }}</h5>
+                {% if tattoo.style %}
+                <p class="card-text"><span class="badge bg-dark">{{ tattoo.style.name }}</span></p>
+                {% endif %}
+                <p class="card-text"><strong>{{ tattoo.price }} ₽</strong></p>
+                <p class="card-text">
+                    <span class="badge {% if tattoo.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                        {% if tattoo.is_active %}Активна{% else %}Неактивна{% endif %}
+                    </span>
+                </p>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'master_tattoo_edit' tattoo.pk %}" class="btn btn-sm btn-outline-primary">Редактировать</a>
+                    <a href="{% url 'master_tattoo_delete' tattoo.pk %}" class="btn btn-sm btn-outline-danger">Удалить</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">Татуировки не найдены</div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_style %}&style={{ current_style }}{% endif %}">Предыдущая</a>
+        </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <li class="page-item active">
+            <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ num }}{% if current_style %}&style={{ current_style }}{% endif %}">{{ num }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_style %}&style={{ current_style }}{% endif %}">Следующая</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+

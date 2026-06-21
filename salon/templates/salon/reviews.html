@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Отзывы - Тату-Салон{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-5 fw-bold mb-4">Отзывы наших клиентов</h1>
+        
+        {% if user.is_authenticated %}
+        <div class="mb-4">
+            <a href="{% url 'add_review' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Оставить отзыв
+            </a>
+        </div>
+        {% endif %}
+        
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <select name="master" class="form-select">
+                    <option value="">Все мастера</option>
+                    {% for master in masters %}
+                    <option value="{{ master.pk }}" {% if current_master == master.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ master.get_full_name|default:master.username }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select name="sort" class="form-select">
+                    <option value="-created_at" {% if current_sort == "-created_at" %}selected{% endif %}>По дате (новые)</option>
+                    <option value="rating_desc" {% if current_sort == "rating_desc" %}selected{% endif %}>По рейтингу (высокий)</option>
+                    <option value="rating_asc" {% if current_sort == "rating_asc" %}selected{% endif %}>По рейтингу (низкий)</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">Применить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% for review in page_obj %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong>{{ review.author.username }}</strong>
+                    <div>
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                            {% else %}
+                                <i class="bi bi-star text-muted"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% if review.master %}
+                <p class="text-muted mb-2"><small>Мастер: {{ review.master.get_full_name|default:review.master.username }}</small></p>
+                {% endif %}
+                {% if review.tattoo %}
+                <p class="text-muted mb-2"><small>Татуировка: {{ review.tattoo.title }}</small></p>
+                {% endif %}
+                <p class="card-text">{{ review.text }}</p>
+                <small class="text-muted">{{ review.created_at|date:"d.m.Y H:i" }}</small>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">Отзывы не найдены</div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_master %}&master={{ current_master }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">Предыдущая</a>
+        </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <li class="page-item active">
+            <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ num }}{% if current_master %}&master={{ current_master }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">{{ num }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_master %}&master={{ current_master }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">Следующая</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+
+
+

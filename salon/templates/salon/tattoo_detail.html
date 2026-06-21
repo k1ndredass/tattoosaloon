@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ tattoo.title }} - Тату-Салон{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        {% if tattoo.image %}
+        <img src="{{ tattoo.image.url }}" class="img-fluid rounded" alt="{{ tattoo.title }}">
+        {% else %}
+        <div class="bg-secondary d-flex align-items-center justify-content-center rounded" style="height: 400px;">
+            <i class="bi bi-image" style="font-size: 80px; color: white;"></i>
+        </div>
+        {% endif %}
+    </div>
+    <div class="col-md-6">
+        <h1 class="display-5 fw-bold mb-3">{{ tattoo.title }}</h1>
+        {% if tattoo.style %}
+        <p class="mb-2"><strong>Стиль:</strong> <span class="badge bg-dark">{{ tattoo.style.name }}</span></p>
+        {% endif %}
+        <p class="mb-2"><strong>Мастер:</strong> {{ tattoo.master.get_full_name|default:tattoo.master.username }}</p>
+        <p class="mb-3"><strong>Цена:</strong> <span class="h4 text-primary">{{ tattoo.price }} ₽</span></p>
+        <p class="mb-4">{{ tattoo.description }}</p>
+        
+        {% if user.is_authenticated %}
+        <div class="d-flex gap-2">
+            <a href="{% url 'add_to_cart' tattoo.pk %}" class="btn btn-primary">
+                <i class="bi bi-cart-plus"></i> В корзину
+            </a>
+            <a href="{% url 'create_appointment' %}?tattoo={{ tattoo.pk }}" class="btn btn-outline-primary">
+                <i class="bi bi-calendar-plus"></i> Записаться
+            </a>
+        </div>
+        {% else %}
+        <p class="text-muted">Войдите, чтобы добавить в корзину или записаться</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if related_tattoos %}
+<div class="row mb-5">
+    <div class="col-12">
+        <h3 class="mb-4">Похожие работы</h3>
+        <div class="row g-4">
+            {% for related in related_tattoos %}
+            <div class="col-md-3 col-sm-6">
+                <div class="card h-100">
+                    {% if related.image %}
+                    <img src="{{ related.image.url }}" class="card-img-top tattoo-image" alt="{{ related.title }}">
+                    {% else %}
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center tattoo-image">
+                        <i class="bi bi-image" style="font-size: 60px; color: white;"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h6 class="card-title">{{ related.title }}</h6>
+                        <p class="card-text"><strong>{{ related.price }} ₽</strong></p>
+                        <a href="{% url 'tattoo_detail' related.pk %}" class="btn btn-outline-primary btn-sm">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if reviews %}
+<div class="row">
+    <div class="col-12">
+        <h3 class="mb-4">Отзывы</h3>
+        {% for review in reviews %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong>{{ review.author.username }}</strong>
+                    <div>
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                            {% else %}
+                                <i class="bi bi-star text-muted"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <p class="card-text">{{ review.text }}</p>
+                <small class="text-muted">{{ review.created_at|date:"d.m.Y H:i" }}</small>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+

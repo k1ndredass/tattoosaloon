@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}О нас - Тату-Салон{% endblock %}
+
+{% block content %}
+<div class="row mb-5">
+    <div class="col-12">
+        <h1 class="display-4 fw-bold mb-4">О нас</h1>
+        <p class="lead">
+            Мы — профессиональный тату-салон с многолетним опытом работы. 
+            Наша команда состоит из талантливых мастеров, которые создают уникальные 
+            и качественные татуировки для наших клиентов.
+        </p>
+    </div>
+</div>
+
+{% if masters %}
+<div class="row mb-5">
+    <div class="col-12">
+        <h2 class="mb-4">Наша команда</h2>
+        <div class="row g-4">
+            {% for master in masters %}
+            <div class="col-md-4 col-sm-6">
+                <div class="card master-card h-100 text-center"
+                     role="button"
+                     data-bs-toggle="modal"
+                     data-bs-target="#masterInfoModal"
+                     data-master-name="{{ master.get_full_name|default:master.username }}"
+                     data-master-email="{{ master.email|default:'info@tattoo.local' }}"
+                     data-master-phone="{{ master.phone|default:'+7 (000) 000-00-00' }}"
+                     data-master-bio="Опыт работы: 5+ лет. Специализация: реализм и графика.">
+                    {% if master.avatar %}
+                    <img src="{{ master.avatar.url }}" class="card-img-top" alt="{{ master.username }}" style="height: 300px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 300px;">
+                        <i class="bi bi-person-circle" style="font-size: 100px; color: white;"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ master.get_full_name|default:master.username }}</h5>
+                        <p class="card-text text-muted">Тату-мастер</p>
+                        <p class="card-text"><small class="text-muted">Подробнее</small></p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-6">
+        <h3>Наши преимущества</h3>
+        <ul class="list-unstyled">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Профессиональные мастера</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Качественные материалы</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Стерильные условия</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Индивидуальный подход</li>
+        </ul>
+    </div>
+    <div class="col-md-6">
+        <h3>Как мы работаем</h3>
+        <ol>
+            <li class="mb-2">Консультация и выбор дизайна</li>
+            <li class="mb-2">Запись на удобное время</li>
+            <li class="mb-2">Выполнение работы</li>
+            <li class="mb-2">Консультация по уходу</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    const masterInfoModal = document.getElementById('masterInfoModal');
+    if (masterInfoModal) {
+        masterInfoModal.addEventListener('show.bs.modal', (event) => {
+            const card = event.relatedTarget;
+            document.getElementById('infoMasterName').textContent = card.getAttribute('data-master-name');
+            document.getElementById('infoMasterEmail').textContent = card.getAttribute('data-master-email');
+            document.getElementById('infoMasterPhone').textContent = card.getAttribute('data-master-phone');
+            document.getElementById('infoMasterBio').textContent = card.getAttribute('data-master-bio');
+        });
+    }
+</script>
+
+<div class="modal fade" id="masterInfoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoMasterName">Мастер</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-2"><strong>Email:</strong> <span id="infoMasterEmail"></span></p>
+        <p class="mb-2"><strong>Телефон:</strong> <span id="infoMasterPhone"></span></p>
+        <p class="mb-0"><strong>О мастере:</strong> <span id="infoMasterBio"></span></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
+
+

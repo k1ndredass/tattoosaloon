@@ -1,0 +1,368 @@
+{% extends 'base.html' %}
+
+{% block title %}Тату-Салон — сеть студий{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero mb-5">
+    <div class="row align-items-center">
+        <div class="col-md-7">
+            <p class="text-uppercase fw-bold mb-2">Сеть тату-студий с 2008 года</p>
+            <h1 class="display-4 fw-bold mb-3">Более 10 000 работ, 17 лет в деле</h1>
+            <p class="lead mb-4">Запишись на бесплатную консультацию и получи 1500 ₽ в подарок на первый сеанс.</p>
+            <div class="d-flex flex-wrap cta">
+                <a href="#lead-form" class="btn btn-primary btn-lg">Записаться на консультацию</a>
+                <a href="#portfolio" class="btn btn-outline-light btn-lg ms-2">Смотреть портфолио</a>
+            </div>
+        </div>
+        <div class="col-md-5 mt-4 mt-md-0">
+            <div class="stat-block mb-3">
+                <h4 class="mb-1">17 лет в деле</h4>
+                <p class="mb-0 text-muted">Сеть студий, проверенная временем</p>
+            </div>
+            <div class="stat-block mb-3">
+                <h4 class="mb-1">10 000+ работ</h4>
+                <p class="mb-0 text-muted">Смотри лучшие работы в портфолио</p>
+            </div>
+            <div class="stat-block">
+                <h4 class="mb-1">3 студии</h4>
+                <p class="mb-0 text-muted">Запишись в удобную локацию</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA inline -->
+<section class="mb-5" id="lead-form">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <h3 class="section-title">Запишись на бесплатную консультацию</h3>
+                    <p class="text-muted mb-0">Оставь заявку — мы подберём мастера, уточним идею и время.</p>
+                </div>
+                <div class="col-md-8 mt-3 mt-md-0">
+                    <form method="post" action="{% url 'submit_lead' %}" class="row g-2">
+                        {% csrf_token %}
+                        {{ lead_form.non_field_errors }}
+                        <div class="col-lg-3 col-md-6">
+                            {{ lead_form.name }}
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            {{ lead_form.phone }}
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            {{ lead_form.lead_type }}
+                        </div>
+                            <div class="col-lg-3 col-md-6">
+                            {{ lead_form.preferred_master }}
+                        </div>
+                        <div class="col-12">
+                            {{ lead_form.comment }}
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-primary">Отправить заявку</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Мастера -->
+{% if masters %}
+<section class="mb-5" id="masters">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="section-title">Наши мастера</h2>
+        <a href="{% url 'about' %}" class="btn btn-outline-primary btn-sm">Все мастера</a>
+    </div>
+    <div class="row g-4">
+        {% for master in masters %}
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="card master-card h-100 text-center">
+                {% if master.avatar %}
+                <img src="{{ master.avatar.url }}" class="card-img-top" alt="{{ master.username }}" style="height: 220px; object-fit: cover;">
+                {% else %}
+                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 220px;">
+                    <i class="bi bi-person-circle" style="font-size: 80px; color: white;"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ master.get_full_name|default:master.username }}</h5>
+                    <p class="card-text text-muted mb-2">Тату-мастер</p>
+                    <button type="button"
+                            class="btn btn-outline-primary btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#masterBookingModal"
+                            data-master-id="{{ master.id }}"
+                            data-master-name="{{ master.get_full_name|default:master.username }}">
+                        Записаться
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Портфолио -->
+{% if featured_tattoos %}
+<section class="mb-5" id="portfolio">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="section-title">Портфолио студии</h2>
+        <a href="{% url 'catalog' %}" class="btn btn-outline-primary btn-sm">Всё портфолио</a>
+    </div>
+    <div class="row g-4">
+        {% for tattoo in featured_tattoos %}
+        <div class="col-lg-4 col-sm-6">
+            <div class="card h-100">
+                {% if tattoo.image %}
+                <img src="{{ tattoo.image.url }}" class="card-img-top tattoo-image" alt="{{ tattoo.title }}">
+                {% else %}
+                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center tattoo-image">
+                    <i class="bi bi-image" style="font-size: 60px; color: white;"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ tattoo.title }}</h5>
+                    {% if tattoo.style %}
+                    <span class="badge bg-dark mb-2">{{ tattoo.style.name }}</span>
+                    {% endif %}
+                    <p class="card-text text-muted">{{ tattoo.description|truncatewords:18 }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">{{ tattoo.price }} ₽</span>
+                        <a href="{% url 'tattoo_detail' tattoo.pk %}" class="btn btn-outline-primary btn-sm">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- FAQ -->
+<section class="mb-5" id="faq">
+    <div class="row">
+        <div class="col-md-6">
+            <h2 class="section-title">Ответы на частые вопросы</h2>
+            <p class="text-muted">Подготовка к сеансу, выбор стиля, консультация и стоимость — всё, что нужно знать перед записью.</p>
+        </div>
+        <div class="col-md-6">
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq1">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1c">
+                            Для чего нужна консультация?
+                        </button>
+                    </h2>
+                    <div id="faq1c" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            На консультации вы знакомитесь с мастером, обсуждаете идею, стиль, размер и размещение тату, узнаёте точную стоимость.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq2">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2c">
+                            Как подготовиться к сеансу?
+                        </button>
+                    </h2>
+                    <div id="faq2c" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Не употребляйте алкоголь за сутки, избегайте солярия и травм кожи, выспитесь и плотно поешьте перед процедурой.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq3">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3c">
+                            Как выбрать стиль татуировки?
+                        </button>
+                    </h2>
+                    <div id="faq3c" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Определите место и посыл тату, посмотрите примеры в портфолио, мастер предложит подходящий стиль и эскиз.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Контакты -->
+<section class="mb-5" id="contacts">
+    <div class="row g-4">
+        <div class="col-md-5">
+            <h2 class="section-title">Контакты и адреса</h2>
+            <p class="mb-2"><i class="bi bi-telephone"></i> +7 (383) 322-22-62</p>
+            <p class="mb-2"><i class="bi bi-envelope"></i> info@tattoonsk.ru</p>
+            <p class="text-muted">3 студии в Новосибирске: Советская 7, Красный Проспект 94, Пр. Карла Маркса 57.</p>
+            <a href="#lead-form" class="btn btn-primary me-2">Обратный звонок</a>
+            <a href="#lead-form" class="btn btn-outline-primary">Записаться</a>
+        </div>
+        <div class="col-md-7">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="mb-3">Форма обратной связи</h5>
+                    <form method="post" action="{% url 'submit_lead' %}" class="row g-3">
+                        {% csrf_token %}
+                        <div class="col-md-6">
+                            {{ lead_form.name }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ lead_form.phone }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ lead_form.email }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ lead_form.lead_type }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ lead_form.preferred_master }}
+                        </div>
+                        <div class="col-12">
+                            {{ lead_form.comment }}
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-primary">Отправить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Отзывы -->
+{% if recent_reviews %}
+<section class="mb-5" id="reviews">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="section-title">Отзывы клиентов</h2>
+        <a href="{% url 'reviews' %}" class="btn btn-outline-primary btn-sm">Все отзывы</a>
+    </div>
+    <div class="row g-4">
+        {% for review in recent_reviews %}
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <strong>{{ review.author.username }}</strong>
+                        <div class="ms-auto">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                {% else %}
+                                    <i class="bi bi-star text-muted"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <p class="card-text">{{ review.text|truncatewords:20 }}</p>
+                    {% if review.master %}
+                    <small class="text-muted">Мастер: {{ review.master.username }}</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Модалка записи на мастера -->
+<div class="modal fade" id="masterBookingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Запись на сеанс к <span id="modalMasterName"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post" action="{% url 'create_appointment' %}" id="masterBookingForm">
+            {% csrf_token %}
+            <input type="hidden" name="master" id="modalMasterId">
+            <input type="hidden" name="tattoo" value="">
+            <div class="mb-3">
+                <label class="form-label">Дата</label>
+                <input type="date" name="date" id="modalDate" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Время</label>
+                <select name="time" id="modalTime" class="form-select" required>
+                    <option value="">Сначала выберите дату</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Примечание</label>
+                <textarea name="notes" class="form-control" rows="3" placeholder="Комментарий (опционально)"></textarea>
+            </div>
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">Записаться</button>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    const bookingModal = document.getElementById('masterBookingModal');
+    if (bookingModal) {
+        bookingModal.addEventListener('show.bs.modal', (event) => {
+            const button = event.relatedTarget;
+            const masterId = button.getAttribute('data-master-id');
+            const masterName = button.getAttribute('data-master-name');
+            document.getElementById('modalMasterId').value = masterId;
+            document.getElementById('modalMasterName').textContent = masterName;
+
+            // сбрасываем время
+            const timeSelect = document.getElementById('modalTime');
+            timeSelect.innerHTML = '<option value="">Сначала выберите дату</option>';
+            document.getElementById('modalDate').value = '';
+        });
+
+        const dateInput = document.getElementById('modalDate');
+        dateInput.addEventListener('change', () => {
+            const masterId = document.getElementById('modalMasterId').value;
+            const dateVal = dateInput.value;
+            const timeSelect = document.getElementById('modalTime');
+            if (!masterId || !dateVal) return;
+            timeSelect.innerHTML = '<option value="">Загрузка...</option>';
+            fetch(`{% url 'get_available_times' %}?master_id=${masterId}&date=${dateVal}`)
+                .then(r => r.json())
+                .then(data => {
+                    timeSelect.innerHTML = '';
+                    if (data.available_times && data.available_times.length > 0) {
+                        const empty = document.createElement('option');
+                        empty.value = '';
+                        empty.textContent = 'Выберите время';
+                        timeSelect.appendChild(empty);
+                        data.available_times.forEach(t => {
+                            const opt = document.createElement('option');
+                            opt.value = t;
+                            opt.textContent = t;
+                            timeSelect.appendChild(opt);
+                        });
+                    } else {
+                        const opt = document.createElement('option');
+                        opt.value = '';
+                        opt.textContent = 'Нет свободного времени на дату';
+                        timeSelect.appendChild(opt);
+                    }
+                })
+                .catch(() => {
+                    timeSelect.innerHTML = '<option value="">Ошибка загрузки времени</option>';
+                });
+        });
+    }
+</script>
+{% endblock %}
+

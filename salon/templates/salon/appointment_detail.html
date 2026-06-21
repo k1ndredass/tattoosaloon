@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Запись #{{ appointment.pk }} - Тату-Салон{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <h1 class="mb-4">Запись на сеанс #{{ appointment.pk }}</h1>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Информация о записи</h5>
+                <p><strong>Клиент:</strong> {{ appointment.client.get_full_name|default:appointment.client.username }}</p>
+                <p><strong>Мастер:</strong> {{ appointment.master.get_full_name|default:appointment.master.username }}</p>
+                <p><strong>Дата:</strong> {{ appointment.date|date:"d.m.Y" }}</p>
+                <p><strong>Время:</strong> {{ appointment.time|time:"H:i" }}</p>
+                <p><strong>Статус:</strong> 
+                    <span class="badge 
+                        {% if appointment.status == 'confirmed' %}bg-success
+                        {% elif appointment.status == 'completed' %}bg-secondary
+                        {% elif appointment.status == 'cancelled' %}bg-danger
+                        {% else %}bg-warning{% endif %}">
+                        {{ appointment.get_status_display }}
+                    </span>
+                </p>
+                {% if appointment.tattoo %}
+                <p><strong>Татуировка:</strong> 
+                    <a href="{% url 'tattoo_detail' appointment.tattoo.pk %}">{{ appointment.tattoo.title }}</a>
+                </p>
+                {% endif %}
+                {% if appointment.notes %}
+                <p><strong>Примечания:</strong> {{ appointment.notes }}</p>
+                {% endif %}
+                <p><strong>Создана:</strong> {{ appointment.created_at|date:"d.m.Y H:i" }}</p>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <a href="{% url 'appointments' %}" class="btn btn-outline-secondary">Назад к списку</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+

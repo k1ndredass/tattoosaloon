@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Уходовые товары - Админ{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold mb-3">Уходовые товары</h1>
+        <div class="mb-3">
+            <a href="{% url 'admin_care_product_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Добавить товар
+            </a>
+        </div>
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" placeholder="Поиск..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-3">
+                <select name="active" class="form-select">
+                    <option value="">Все</option>
+                    <option value="true" {% if current_active == "true" %}selected{% endif %}>Активные</option>
+                    <option value="false" {% if current_active == "false" %}selected{% endif %}>Неактивные</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Применить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for product in page_obj %}
+    <div class="col-md-4 col-sm-6">
+        <div class="card h-100">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.title }}" style="height: 180px; object-fit: cover;">
+            {% endif %}
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0">{{ product.title }}</h5>
+                    <span class="badge {% if product.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                        {% if product.is_active %}Активно{% else %}Скрыто{% endif %}
+                    </span>
+                </div>
+                <p class="fw-bold mb-2">{{ product.price }} ₽</p>
+                {% if product.description %}
+                <p class="text-muted small mb-2">{{ product.description|truncatewords:20 }}</p>
+                {% endif %}
+                <div class="d-flex gap-2">
+                    <a href="{% url 'admin_care_product_edit' product.pk %}" class="btn btn-sm btn-outline-primary">Редактировать</a>
+                    <a href="{% url 'admin_care_product_delete' product.pk %}" class="btn btn-sm btn-outline-danger">Удалить</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">Товары не найдены</div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_active %}&active={{ current_active }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">Предыдущая</a>
+        </li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if current_active %}&active={{ current_active }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_active %}&active={{ current_active }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">Следующая</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+

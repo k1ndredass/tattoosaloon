@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Записи на сеансы - Тату-Салон{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-5 fw-bold mb-4">Записи на сеансы</h1>
+        
+        {% if not user.is_master and not user.is_admin %}
+        <div class="mb-4">
+            <a href="{% url 'create_appointment' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Создать запись
+            </a>
+        </div>
+        {% endif %}
+        
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <select name="status" class="form-select">
+                    <option value="">Все статусы</option>
+                    <option value="pending" {% if current_status == "pending" %}selected{% endif %}>Ожидает подтверждения</option>
+                    <option value="confirmed" {% if current_status == "confirmed" %}selected{% endif %}>Подтверждена</option>
+                    <option value="completed" {% if current_status == "completed" %}selected{% endif %}>Завершена</option>
+                    <option value="cancelled" {% if current_status == "cancelled" %}selected{% endif %}>Отменена</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select name="sort" class="form-select">
+                    <option value="-date" {% if current_sort == "-date" %}selected{% endif %}>По дате (новые)</option>
+                    <option value="date_asc" {% if current_sort == "date_asc" %}selected{% endif %}>По дате (старые)</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">Применить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% for appointment in page_obj %}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    {% if user.is_admin or user.is_master %}
+                    Клиент: {{ appointment.client.username }}
+                    {% else %}
+                    Мастер: {{ appointment.master.get_full_name|default:appointment.master.username }}
+                    {% endif %}
+                </h5>
+                <p class="card-text">
+                    <strong>Дата:</strong> {{ appointment.date|date:"d.m.Y" }}<br>
+                    <strong>Время:</strong> {{ appointment.time|time:"H:i" }}<br>
+                    {% if appointment.tattoo %}
+                    <strong>Татуировка:</strong> {{ appointment.tattoo.title }}<br>
+                    {% endif %}
+                    <strong>Статус:</strong> 
+                    <span class="badge 
+                        {% if appointment.status == 'confirmed' %}bg-success
+                        {% elif appointment.status == 'completed' %}bg-secondary
+                        {% elif appointment.status == 'cancelled' %}bg-danger
+                        {% else %}bg-warning{% endif %}">
+                        {{ appointment.get_status_display }}
+                    </span>
+                </p>
+                {% if appointment.notes %}
+                <p class="card-text"><small class="text-muted">{{ appointment.notes }}</small></p>
+                {% endif %}
+                <a href="{% url 'appointment_detail' appointment.pk %}" class="btn btn-outline-primary btn-sm">Подробнее</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">Записи не найдены</div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">Предыдущая</a>
+        </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <li class="page-item active">
+            <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ num }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">{{ num }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">Следующая</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+
+
+

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Удалить запись - Админ{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <h1 class="mb-4">Удалить запись</h1>
+        <div class="alert alert-warning">
+            <p>Вы уверены, что хотите удалить запись #{{ appointment.pk }}?</p>
+            <p class="mb-0">Это действие нельзя отменить.</p>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Удалить</button>
+            <a href="{% url 'admin_appointments' %}" class="btn btn-outline-secondary">Отмена</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
